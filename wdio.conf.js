@@ -1,4 +1,7 @@
+/*globals execute */
 const timeout = process.env.DEBUG ? 99999999 : 30000;
+var user= process.env.LT_USERNAME || "sirajk";
+var key= process.env.LT_ACCESS_KEY || "oz85RZKxbqX6X8aCQXuQgUDnojP8OwY3wx2SAkEswtgRuxl8n0";
 
 exports.config = {
     //
@@ -8,7 +11,11 @@ exports.config = {
     //
     // WebdriverIO allows it to run your tests in arbitrary locations (e.g. locally or
     // on a remote machine).
-    runner: 'local',
+//    runner: 'local',
+
+updateJob: false,
+  user,
+  key,
 
     //
     // ==================
@@ -42,7 +49,7 @@ exports.config = {
     // and 30 processes will get spawned. The property handles how many capabilities
     // from the same test should run tests.
     //
-    maxInstances: 1,
+    maxInstances: 25,
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
@@ -52,9 +59,18 @@ exports.config = {
         // maxInstances can get overwritten per capability. So if you have an in-house Selenium
         // grid with only 5 firefox instances available you can make sure that not more than
         // 5 instances get started at a time.
-        maxInstances: 1,
+//        maxInstances: 1,
         //
-        browserName: 'chrome'
+        browserName: 'firefox',
+    version:"67.0",
+    name:"Test webdriverio",
+    platform:"windows 10",
+    build:"build 1",
+    network: false,
+    video: true,
+    visual: true,
+    console: true,
+    tunnel:false
     }],
     //
     // ===================
@@ -64,6 +80,10 @@ exports.config = {
     //
     // Level of logging verbosity: trace | debug | info | warn | error
     logLevel: 'error',
+    
+     hostname: 'hub.lambdatest.com',
+  port: 80,
+    
     //
     // Warns when a deprecated command is used
     deprecationWarnings: true,
@@ -92,7 +112,7 @@ exports.config = {
     // Services take over a specific job you don't want to take care of. They enhance
     // your test setup with almost no effort. Unlike plugins, they don't add new
     // commands. Instead, they hook themselves up into the test process.
-    services: ['selenium-standalone'],
+//    services: ['selenium-standalone'],
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
     // see also: https://webdriver.io/docs/frameworks.html
@@ -140,8 +160,11 @@ exports.config = {
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that are to be run
      */
-    // beforeSession: function (config, capabilities, specs) {
-    // },
+    
+     beforeSession: function (config, capabilities, specs) {
+    capabilities.name=specs[0].split(/(\\|\/)/g).pop() || undefined;
+    },
+    
     /**
      * Gets executed before test execution begins. At this point you can access to all global
      * variables like `browser`. It is the perfect place to define custom commands.
@@ -215,8 +238,9 @@ exports.config = {
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that ran
      */
-    // after: function (result, capabilities, specs) {
-    // },
+   after: function (result, capabilities, specs) {
+     browser.execute("lambda-status=".concat(result==0?"passed":"failed"),undefined);
+    },
     /**
      * Gets executed right after terminating the webdriver session.
      * @param {Object} config wdio configuration object
